@@ -1285,10 +1285,7 @@
                             "invalid_name": "Tên chủ đề phải là duy nhất và có giới hạn 16 ký tự"
                         },
                         "theme_name": "Tên",
-                        "info": {
-                            "creating_theme": "Tạo một chủ đề tùy chỉnh với <2>MUI Theme Creator</2>, sao chép mọi thứ sau \"themeOptions\" from \"{\" to \"}\" và dán vào trường văn bản có nhãn \"Chủ đề\".",
-                            "theme_mode_lock": "Nếu \"mode\" hoặc \"type\" được thiết lập trong \"palette\", chủ đề sẽ bị khóa vào chế độ này và sẽ không thay đổi bất kể chế độ chủ đề của ứng dụng được chọn"
-                        }
+                        "description": "Xem <0>tài liệu MUI</0> chính thức để biết cách tùy chỉnh chủ đề.\nAPI bảng màu không được hỗ trợ, bạn phải sử dụng <1>API bảng phối màu</1> mới.\n\nBạn có thể sử dụng các trình tạo chủ đề như <2>MUI Theme Creator</2>, tuy nhiên, bạn phải điều chỉnh đối tượng đã tạo theo API phối màu mới.\n\nTrong trường hợp không xác định được nền thì nền sẽ được tính dựa trên màu chính"
                     },
                     "success": "Đã tạo chủ đề",
                     "action": "Đang tạo chủ đề…",
@@ -1318,7 +1315,8 @@
                     "orange_juice": "Cam ép",
                     "bright_pink": "Hồng tươi",
                     "tree_frog_green": "Ếch xanh",
-                    "veronica": "Hoa tím"
+                    "veronica": "Hoa tím",
+                    "ying_and_yang": "Trắng & Đen"
                 },
                 "title": "Chủ đề",
                 "select": {

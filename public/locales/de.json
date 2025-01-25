@@ -465,17 +465,6 @@
                 "settings": "Server Einstellungen"
             }
         },
-        "appearance": {
-            "theme": {
-                "create": {
-                    "dialog": {
-                        "info": {
-                            "creating_theme": "Erstelle ein benutzerdefiniertes Design mit dem <2> MUI Theme Creator</2>, kopiere alles nach \"themeOptions\" von \"{\" bis \"}\" und füge es in das \"theme\" Textfeld ein."
-                        }
-                    }
-                }
-            }
-        },
         "webui": {
             "flavor": {
                 "option": {
