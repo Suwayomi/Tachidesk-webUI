@@ -39,3 +39,5 @@ export const getValueFromObject = <T>(obj: Record<string, any>, key: string): T 
 };
 
 export const coerceIn = (value: number, min: number, max: number): number => Math.min(Math.max(value, min), max);
+
+export const noOp = () => {};
