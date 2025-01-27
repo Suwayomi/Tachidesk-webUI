@@ -91,7 +91,6 @@ const BaseStandardReaderProgressBar = ({
                     ) => (
                         <ReaderProgressBarSlotDesktop
                             pageName={page.name}
-                            pageUrl={page.primary.url}
                             primaryPageLoadState={primaryPageLoadState}
                             secondaryPageLoadState={secondaryPageLoadState}
                             progressBarPosition={finalProgressBarPosition}

@@ -17,7 +17,6 @@ export const ReaderProgressBarSlot = memo(
     ({ pageName, progressBarPosition, slotProps, children }: ReaderProgressBarSlotProps & { children?: ReactNode }) => (
         <Tooltip
             {...slotProps?.tooltip}
-            key={pageName}
             title={pageName}
             placement={READER_PROGRESS_BAR_POSITION_TO_PLACEMENT[progressBarPosition]}
         >

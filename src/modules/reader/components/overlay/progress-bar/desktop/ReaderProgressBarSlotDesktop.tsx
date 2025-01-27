@@ -16,7 +16,6 @@ import { IReaderSettings } from '@/modules/reader/types/Reader.types.ts';
 export const ReaderProgressBarSlotDesktop = memo(
     ({
         pageName,
-        pageUrl,
         primaryPageLoadState,
         secondaryPageLoadState,
         progressBarPosition,
@@ -25,7 +24,6 @@ export const ReaderProgressBarSlotDesktop = memo(
         showDraggingStyle,
     }: Pick<IReaderSettings, 'progressBarPosition'> & {
         pageName: string;
-        pageUrl: string;
         primaryPageLoadState: boolean;
         secondaryPageLoadState?: boolean;
         isCurrentPage: boolean;
@@ -36,7 +34,6 @@ export const ReaderProgressBarSlotDesktop = memo(
 
         return (
             <ReaderProgressBarSlot
-                key={pageUrl}
                 pageName={pageName}
                 progressBarPosition={progressBarPosition}
                 slotProps={{
