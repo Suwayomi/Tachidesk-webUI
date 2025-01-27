@@ -6,9 +6,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { ComponentType, forwardRef, memo } from 'react';
+import { ComponentType, memo, forwardRef } from 'react';
 
-type PropsSourceCreator<T> = () => T;
+type PropsSourceCreator<T, Props extends Record<string, any>> = (props: Props) => T;
 
 export const withPropsFrom = <
     ComponentProps extends Record<string, any>,
@@ -16,12 +16,17 @@ export const withPropsFrom = <
     SourcePropKeys extends keyof (ComponentProps | MergeObjectsArray<SourceProps>),
 >(
     Component: ComponentType<ComponentProps>,
-    propsSources: { [K in keyof SourceProps]: PropsSourceCreator<SourceProps[K]> },
+    propsSources: {
+        [K in keyof SourceProps]: PropsSourceCreator<SourceProps[K], Omit<ComponentProps, SourcePropKeys>>;
+    },
     sourcePropKeys: SourcePropKeys[],
 ) =>
     memo(
         forwardRef<HTMLElement, Omit<ComponentProps, SourcePropKeys>>((props, ref) => {
-            const sourceProps = propsSources.reduce((acc, propsSource) => ({ ...acc, ...propsSource() }), {});
+            const sourceProps = propsSources.reduce(
+                (acc, propsSource) => ({ ...acc, ...propsSource(props as Omit<ComponentProps, SourcePropKeys>) }),
+                {},
+            );
 
             const selectedProps = Object.fromEntries(
                 Object.entries(sourceProps).filter(([key]) => sourcePropKeys.includes(key as SourcePropKeys)),
