@@ -6,61 +6,70 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { useEffect } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { getInitialReaderPageIndex } from '@/modules/reader/utils/Reader.utils.ts';
 import { createPagesData } from '@/modules/reader/utils/ReaderPager.utils.tsx';
 import {
+    ReaderPageSpreadState,
     ReaderResumeMode,
-    ReaderStateChapters,
     ReaderTransitionPageMode,
 } from '@/modules/reader/types/Reader.types.ts';
 import { requestManager } from '@/lib/requests/RequestManager.ts';
 import { ReaderStatePages } from '@/modules/reader/types/ReaderProgressBar.types.ts';
-import { READER_STATE_PAGES_DEFAULTS } from '@/modules/reader/constants/ReaderContext.constants.ts';
+import { TChapterReader } from '@/modules/chapter/Chapter.types.ts';
 
 export const useReaderSetPagesState = (
+    isCurrentChapter: boolean,
     pagesResponse: ReturnType<typeof requestManager.useGetChapterPagesFetch>[1],
     resumeMode: ReaderResumeMode,
-    currentChapter: ReaderStateChapters['currentChapter'],
+    lastPageRead: TChapterReader['lastPageRead'] | undefined,
+    pages: ReaderStatePages['pages'],
+    pageLoadStates: ReaderStatePages['pageLoadStates'],
+    pagesToSpreadState: ReaderPageSpreadState[],
     setArePagesFetched: (fetched: boolean) => void,
     setTotalPages: ReaderStatePages['setTotalPages'],
     setPages: ReaderStatePages['setPages'],
     setPageUrls: ReaderStatePages['setPageUrls'],
     setPageLoadStates: ReaderStatePages['setPageLoadStates'],
+    setPagesToSpreadState: (state: ReaderPageSpreadState[]) => void,
     setCurrentPageIndex: ReaderStatePages['setCurrentPageIndex'],
     setPageToScrollToIndex: ReaderStatePages['setPageToScrollToIndex'],
     setTransitionPageMode: ReaderStatePages['setTransitionPageMode'],
 ) => {
-    useEffect(() => {
+    const previousPageData = useRef<string[]>();
+
+    useLayoutEffect(() => {
         const pagesPayload = pagesResponse.data?.fetchChapterPages;
-        if (pagesPayload) {
-            const { pages: newPages } = pagesPayload;
+        if (!pagesPayload) {
+            return;
+        }
 
-            const initialReaderPageIndex = getInitialReaderPageIndex(
-                resumeMode,
-                currentChapter?.lastPageRead ?? 0,
-                newPages.length - 1,
-            );
+        const { pages: newPages } = pagesPayload;
+        const initialReaderPageIndex = getInitialReaderPageIndex(resumeMode, lastPageRead ?? 0, newPages.length - 1);
 
+        const didPagesChange = previousPageData.current !== pagesPayload?.pages;
+        if (didPagesChange) {
+            previousPageData.current = pagesPayload.pages;
             const newPageData = createPagesData(newPages);
 
             setArePagesFetched(true);
-            setTotalPages(pagesPayload.chapter.pageCount);
             setPages(newPageData);
             setPageUrls(newPages);
             setPageLoadStates(newPageData.map(({ primary: { url } }) => ({ url, loaded: false })));
+            setPagesToSpreadState(newPageData.map(({ primary: { url } }) => ({ url, isSpread: false })));
             setCurrentPageIndex(initialReaderPageIndex);
             setPageToScrollToIndex(initialReaderPageIndex);
         } else {
-            setArePagesFetched(false);
-            setCurrentPageIndex(READER_STATE_PAGES_DEFAULTS.currentPageIndex);
-            setPageToScrollToIndex(READER_STATE_PAGES_DEFAULTS.pageToScrollToIndex);
-            setTotalPages(READER_STATE_PAGES_DEFAULTS.totalPages);
-            setPages(READER_STATE_PAGES_DEFAULTS.pages);
-            setPageUrls(READER_STATE_PAGES_DEFAULTS.pageUrls);
-            setPageLoadStates(READER_STATE_PAGES_DEFAULTS.pageLoadStates);
+            setPages(pages);
+            setPageLoadStates(pageLoadStates);
+            setPagesToSpreadState(pagesToSpreadState);
         }
 
+        setTotalPages(pagesPayload.pages.length);
+        setPageUrls(newPages);
+        setCurrentPageIndex(initialReaderPageIndex);
+        setPageToScrollToIndex(initialReaderPageIndex);
+
         setTransitionPageMode(ReaderTransitionPageMode.NONE);
-    }, [pagesResponse.data?.fetchChapterPages?.pages]);
+    }, [pagesResponse.data?.fetchChapterPages?.pages, isCurrentChapter]);
 };

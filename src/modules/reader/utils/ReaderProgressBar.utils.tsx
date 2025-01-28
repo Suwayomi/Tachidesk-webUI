@@ -9,12 +9,13 @@
 import { ReaderProgressBarProps, TReaderProgressCurrentPage } from '@/modules/reader/types/ReaderProgressBar.types.ts';
 import { getOptionForDirection as getOptionForDirectionImpl } from '@/modules/theme/services/ThemeCreator.ts';
 import { ProgressBarPosition } from '@/modules/reader/types/Reader.types.ts';
+import { coerceIn } from '@/lib/HelperFunctions.ts';
 
 export const getPage = (pageIndex: number, pages: ReaderProgressBarProps['pages']): TReaderProgressCurrentPage => {
     const pagesIndex = pages.findIndex(({ primary, secondary }) =>
         [primary.index, secondary?.index].includes(pageIndex),
     );
-    const page = pages[pagesIndex];
+    const page = pages[coerceIn(pagesIndex, 0, pages.length - 1)];
     return {
         ...page,
         pagesIndex,

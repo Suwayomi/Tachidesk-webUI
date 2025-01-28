@@ -192,6 +192,17 @@ export interface ReaderStateChapters {
     currentChapter?: TChapterReader | null;
     nextChapter?: TChapterReader;
     previousChapter?: TChapterReader;
+    /**
+     * Based from the initial chapter index
+     */
+    visibleChapters: {
+        leading: number;
+        trailing: number;
+        lastLeadingChapterSourceOrder: number;
+        lastTrailingChapterSourceOrder: number;
+        scrollIntoView: boolean;
+        resumeMode?: ReaderResumeMode;
+    };
     setReaderStateChapters: React.Dispatch<React.SetStateAction<Omit<ReaderStateChapters, 'setReaderStateChapters'>>>;
 }
 
@@ -246,9 +257,9 @@ export interface ReaderPagerProps
         | 'pageLoadStates'
         | 'retryFailedPagesKeyPrefix'
     > {
-    imageRefs: MutableRefObject<(HTMLElement | null)[]>;
     onLoad?: (pagesIndex: number, url: string, isPrimary?: boolean) => void;
     onError?: (pageIndex: number, url: string) => void;
+    imageRefs: MutableRefObject<(HTMLElement | null)[]>;
 }
 
 export enum PageInViewportType {
