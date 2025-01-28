@@ -1119,10 +1119,6 @@
                             "invalid_json": "無效的 JSON",
                             "invalid_name": "主題名稱必須是唯一且限制為 16 字元以下"
                         },
-                        "info": {
-                            "theme_mode_lock": "在「palette」物件中「mode」或「type」已定義的情況下，主題將會被鎖定在此模式並且將不隨選擇的裝置主題而改變",
-                            "creating_theme": "建立具有 <2>MUI Theme Creator</2> 的主題，將「themeOptions」之後從「{」至「}」的所有內容複製並貼上至「theme」文字欄位之內。"
-                        },
                         "theme_name": "名稱"
                     },
                     "action": "建立主題…",

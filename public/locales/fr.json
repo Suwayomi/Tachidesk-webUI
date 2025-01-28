@@ -739,10 +739,6 @@
             "theme": {
                 "create": {
                     "dialog": {
-                        "info": {
-                            "creating_theme": "Créez un thème personnalisé avec le <2>Créateur de Thème MUI</2>, copiez tout ce qui suit \"themeOptions\" à partir de \"{\" to \"}\" et collez-le dans le champ de texte \"theme\".",
-                            "theme_mode_lock": "Si \"mode\" ou \"type\" est défini dans l’objet \"palette\", le thème sera verrouillé dans ce mode et ne changera pas, quel que soit le thème de l’appareil sélectionné"
-                        },
                         "error": {
                             "invalid_name": "Le nom du thème doit être unique et ne peut pas dépasser 16 caractères",
                             "invalid_json": "JSON invalide"

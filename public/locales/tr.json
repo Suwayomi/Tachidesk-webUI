@@ -1148,11 +1148,7 @@
                             "invalid_name": "Tema adı benzersiz ve 16 karakterle sınırlı olmalıdır",
                             "invalid_json": "Geçersiz json"
                         },
-                        "theme_name": "Adı",
-                        "info": {
-                            "theme_mode_lock": "Eğer \"mod\" veya \"tip\" özelliği, \"palet\" nesnesinde tanımlanmışsa; tema bu moda kilitlenir ve uygulamanın seçili tema moduna göre değişmez",
-                            "creating_theme": "<2>MUI Tema Oluşturucu</2> ile özel bir tema oluşturun, \"themeOptions\" kısmından \"{\" ile \"}\" arasındaki her şeyi kopyalayıp \"theme\" metin alanına yapıştırın."
-                        }
+                        "theme_name": "Adı"
                     },
                     "action": "Tema oluşturuluyor…",
                     "failure": "Tema oluşturulamadı",

@@ -1273,10 +1273,7 @@
                             "invalid_json": "无效的json",
                             "invalid_name": "主题名称必须唯一且最多16字符"
                         },
-                        "info": {
-                            "creating_theme": "创建一个带有 <2>MUI Theme Creator</2>的自定义主题，将“themeOptions”后面从“{”到“}”的所有内容复制，粘贴到“theme”域之内。",
-                            "theme_mode_lock": "如果在“palette”对象中定义了“mode”或“type”，主题将被锁定为该模式，无论所选应用的主题模式如何，都不会发生改变"
-                        }
+                        "description": "查看官方 <0>MUI 文档</0>，了解如何自定义主题。\n调色板 API 不再受到支持，您需要使用新的 <1>色彩方案 API</1>。\n\n您可以使用主题创建器，例如 <2>MUI 主题创建器</2>，但是，您需要根据新的色彩方案 API 调整创建的对象。\n\n如果没有定义背景颜色，系统将根据主色自动计算背景颜色"
                     },
                     "success": "已创建的主题",
                     "failure": "无法创建主题",
@@ -1306,7 +1303,8 @@
                     "minty_miracles": "薄荷奇境",
                     "bright_pink": "炫彩桃红",
                     "tree_frog_green": "翠蛙青绿",
-                    "veronica": "幽蓝婉柔"
+                    "veronica": "幽蓝婉柔",
+                    "ying_and_yang": "阴阳"
                 },
                 "select": {
                     "fonts": {

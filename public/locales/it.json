@@ -261,19 +261,20 @@
                 "install": "Installa",
                 "uninstall": "Disinstalla",
                 "install_external": "Installa estensione esterna",
-                "update": "Aggiorna"
+                "update": "Aggiorna",
+                "update_all": "Aggiorna tutto"
             }
         },
         "label": {
             "update_failed_one": "Impossibile aggiornare l'estensione",
-            "update_failed_many": "Impossibile aggiornare l'estensioni",
+            "update_failed_many": "Impossibile aggiornare le estensioni",
             "update_failed_other": "",
             "installing_file": "Installando il file dell'estensione…",
             "installation_failed_one": "Impossibile installare l'estensione",
-            "installation_failed_many": "Impossibile installare l'estensioni",
+            "installation_failed_many": "Impossibile installare le estensioni",
             "installation_failed_other": "",
             "uninstallation_failed_one": "Impossibile disinstallare l'estensione",
-            "uninstallation_failed_many": "Impossibile disinstallare l'estensioni",
+            "uninstallation_failed_many": "Impossibile disinstallare le estensioni",
             "uninstallation_failed_other": "",
             "installed_successfully_one": "Estensione installata",
             "installed_successfully_many": "Estensioni installate",
@@ -360,7 +361,8 @@
             "latest": "Ultimo",
             "log_out": "Esci",
             "refresh": "Aggiornare",
-            "save": "Salva"
+            "save": "Salva",
+            "open": "Apri"
         },
         "date": {
             "label": {
@@ -394,7 +396,8 @@
                 "unread": "Non letto",
                 "bookmarked": "Segnalibro",
                 "tracked": "Tracciato",
-                "duplicate_chapters": "Capitoli duplicati"
+                "duplicate_chapters": "Capitoli duplicati",
+                "started": "Iniziato"
             }
         },
         "label": {
@@ -424,7 +427,14 @@
             "other": "Altro",
             "password": "Password",
             "placeholder": "Segnaposto",
-            "default": "Predefinito"
+            "default": "Predefinito",
+            "both": "Entrambi",
+            "auto": "Automatico",
+            "copied_clipboard": "Copiato negli appunti",
+            "finished": "Terminato",
+            "desktop": "Desktop",
+            "error": "Errore",
+            "asterisk": "*"
         },
         "update": {
             "label": {
@@ -486,6 +496,11 @@
                 "second_many": "Secondi",
                 "second_other": ""
             }
+        },
+        "colors": {
+            "black": "Nero",
+            "gray": "Grigio",
+            "white": "Bianco"
         }
     },
     "tracking": {

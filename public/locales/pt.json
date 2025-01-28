@@ -1026,11 +1026,7 @@
                             "invalid_json": "Json inválido",
                             "invalid_name": "O nome do tema deve ser único e tem um limite de 16 caracteres"
                         },
-                        "theme_name": "Nome",
-                        "info": {
-                            "creating_theme": "Crie um tema personalizado com o <2>Criador de tema MUI</2>, copie tudo após \"themeOptions\" de \"{\" até \"}\" e cole-o no campo de texto \"tema\".",
-                            "theme_mode_lock": "No caso de \"modo\" ou \"tipo\" é definido no objeto \"palette\", o tema será bloqueado neste modo e não mudará, independentemente do tema do dispositivo de aplicativos selecionado"
-                        }
+                        "theme_name": "Nome"
                     },
                     "title": "Criar tema",
                     "success": "Tema criado",

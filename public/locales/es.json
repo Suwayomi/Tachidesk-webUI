@@ -355,11 +355,8 @@
                             "invalid_json": "Json incorrecto",
                             "invalid_name": "El nombre del tema debe ser único y tiene un límite de 16 caracteres"
                         },
-                        "info": {
-                            "creating_theme": "Crea un tema personalizado con el <2>Creador de temas MUI</2>, copia todo lo que hay después de \"themeOptions\" de \"{\" a \"}\" y pégalo en el campo de texto \"theme\".",
-                            "theme_mode_lock": "En caso de que \"modo\" o \"tipo\" se defina en el objeto \"paleta\", el tema se bloqueará en este modo y no cambiará independientemente del tema de las aplicaciones seleccionadas"
-                        },
-                        "theme_name": "Nombre"
+                        "theme_name": "Nombre",
+                        "description": "Ver la <0>documentación de MUI</0> oficial para ver cómo customizar el tema.\nLa paleta API no está soportada, tienes que usar la nueva <1>API de esquemas de color</1>.\n\nPuedes usar creadores de tema como <2>Creador de Temas MUI</2>, sin embargo, tienes que ajustar el objeto creado acorde a la nueva API de esquemas de color.\n\nEn caso de que no se defina ningún fondo, será calculado uno en base al color principal"
                     },
                     "action": "Creando un tema…",
                     "success": "Tema creado",
@@ -377,7 +374,8 @@
                     "minty_miracles": "Minty Miracles",
                     "tree_frog_green": "Rana de Árbol Verde",
                     "veronica": "Verónica",
-                    "bright_pink": "Rosa Brillante"
+                    "bright_pink": "Rosa Brillante",
+                    "ying_and_yang": "Ying & Yang"
                 },
                 "title": "Tema",
                 "delete": {
