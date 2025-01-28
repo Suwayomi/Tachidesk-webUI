@@ -44,8 +44,8 @@ import { useReaderTapZoneContext } from '@/modules/reader/contexts/ReaderTapZone
 import { TapZoneRegionType, TReaderTapZoneContext } from '@/modules/reader/types/TapZoneLayout.types.ts';
 import { ReaderTapZoneService } from '@/modules/reader/services/ReaderTapZoneService.ts';
 import { isContinuousReadingMode } from '@/modules/reader/utils/ReaderSettings.utils.tsx';
-import { getReaderChapterFromCache } from '@/modules/reader/utils/Reader.utils.ts';
-import { Chapters } from '@/modules/chapter/services/Chapters.ts';
+import { getReaderChapterFromCache, updateReaderStateVisibleChapters } from '@/modules/reader/utils/Reader.utils.ts';
+import { ChapterIdInfo, Chapters } from '@/modules/chapter/services/Chapters.ts';
 import { DirectionOffset, TranslationKey } from '@/Base.types.ts';
 import { useMetadataServerSettings } from '@/modules/settings/services/ServerSettingsMetadata.ts';
 import { TChapterReader } from '@/modules/chapter/Chapter.types.ts';
@@ -166,51 +166,79 @@ export class ReaderControls {
         }
     }
 
-    static useOpenChapter(): (offset: 'previous' | 'next') => void {
+    static useOpenChapter(): (offset: 'previous' | 'next' | ChapterIdInfo['id'], doTransitionCheck?: boolean) => void {
         const { t } = useTranslation();
         const { readingMode, shouldInformAboutMissingChapter, shouldInformAboutScanlatorChange } =
             ReaderService.useSettings();
-        const { currentChapter, previousChapter, nextChapter } = useReaderStateChaptersContext();
+        const { currentChapter, previousChapter, nextChapter, chapters, setReaderStateChapters } =
+            useReaderStateChaptersContext();
 
-        const openPreviousChapter = ReaderService.useNavigateToChapter(previousChapter, ReaderResumeMode.END);
-        const openNextChapter = ReaderService.useNavigateToChapter(nextChapter, ReaderResumeMode.START);
+        const openChapter = ReaderService.useNavigateToChapter();
 
         return useCallback(
-            (offset) => {
-                switch (offset) {
-                    case 'previous':
-                        ReaderControls.checkNextChapterConsistency(
-                            t,
-                            offset,
-                            currentChapter,
-                            previousChapter,
-                            shouldInformAboutMissingChapter,
-                            shouldInformAboutScanlatorChange,
-                        )
-                            .then(openPreviousChapter)
-                            .catch(defaultPromiseErrorHandler('ReaderControls::checkNextChapterConsistency: previous'));
-                        break;
-                    case 'next':
-                        ReaderControls.checkNextChapterConsistency(
-                            t,
-                            offset,
-                            currentChapter,
-                            nextChapter,
-                            shouldInformAboutMissingChapter,
-                            shouldInformAboutScanlatorChange,
-                        )
-                            .then(openNextChapter)
-                            .catch(defaultPromiseErrorHandler('ReaderControls::checkNextChapterConsistency: next'));
-                        break;
-                    default:
-                        throw new Error(`Unexpected "offset" (${offset})`);
+            (offset, doTransitionCheck = true) => {
+                if (!currentChapter) {
+                    return;
                 }
+
+                const isSpecificChapterMode = typeof offset === 'number';
+                const isPreviousOffset = offset === 'previous';
+
+                const doesPreviousChapterExist = isPreviousOffset && !!previousChapter;
+                const doesNextChapterExist = !isPreviousOffset && !!nextChapter;
+
+                const canOpenNextChapter = isSpecificChapterMode || doesPreviousChapterExist || doesNextChapterExist;
+                if (!canOpenNextChapter) {
+                    return;
+                }
+
+                const doOpenChapter = async () => {
+                    const chapterToOpen = (() => {
+                        if (isSpecificChapterMode) {
+                            return chapters.find((chapter) => chapter.id === offset);
+                        }
+
+                        if (isPreviousOffset) {
+                            return previousChapter;
+                        }
+
+                        return nextChapter;
+                    })();
+
+                    if (!chapterToOpen) {
+                        return;
+                    }
+
+                    const isPreviousChapter = chapterToOpen.sourceOrder < currentChapter.sourceOrder;
+
+                    try {
+                        if (doTransitionCheck) {
+                            await ReaderControls.checkNextChapterConsistency(
+                                t,
+                                isPreviousChapter ? 'previous' : 'next',
+                                currentChapter,
+                                chapterToOpen,
+                                shouldInformAboutMissingChapter,
+                                shouldInformAboutScanlatorChange,
+                            );
+                        }
+
+                        setReaderStateChapters((prevState) =>
+                            updateReaderStateVisibleChapters(isPreviousChapter, prevState, chapterToOpen.sourceOrder),
+                        );
+
+                        openChapter(chapterToOpen, isPreviousChapter ? ReaderResumeMode.END : ReaderResumeMode.START);
+                    } catch (error) {
+                        defaultPromiseErrorHandler('ReaderControls#useOpenChapter#doOpenChapter: ');
+                    }
+                };
+
+                doOpenChapter().catch(defaultPromiseErrorHandler('ReaderControls#useOpenChapter'));
             },
             [
                 t,
                 currentChapter?.id,
-                openPreviousChapter,
-                openNextChapter,
+                openChapter,
                 readingMode.value,
                 shouldInformAboutMissingChapter,
                 shouldInformAboutScanlatorChange,
