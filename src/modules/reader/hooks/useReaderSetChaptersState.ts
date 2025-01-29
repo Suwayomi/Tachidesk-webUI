@@ -12,6 +12,7 @@ import { DirectionOffset } from '@/Base.types.ts';
 import { requestManager } from '@/lib/requests/RequestManager.ts';
 import { GetChaptersReaderQuery } from '@/lib/graphql/generated/graphql.ts';
 import { IReaderSettings, ReaderStateChapters } from '@/modules/reader/types/Reader.types.ts';
+import { READER_STATE_CHAPTERS_DEFAULTS } from '@/modules/reader/contexts/state/ReaderStateChaptersContext.tsx';
 
 export const useReaderSetChaptersState = (
     chaptersResponse: ReturnType<typeof requestManager.useGetMangaChapters<GetChaptersReaderQuery>>,
@@ -27,30 +28,42 @@ export const useReaderSetChaptersState = (
             : undefined;
         const newInitialChapter = initialChapter ?? newCurrentChapter;
 
-        setReaderStateChapters({
-            mangaChapters: newMangaChapters ?? [],
-            chapters:
-                newInitialChapter && newMangaChapters
-                    ? Chapters.removeDuplicates(newInitialChapter, newMangaChapters)
-                    : [],
-            initialChapter: newInitialChapter,
-            currentChapter: newCurrentChapter,
-            nextChapter:
-                newMangaChapters &&
-                newCurrentChapter &&
-                Chapters.getNextChapter(newCurrentChapter, newMangaChapters, {
-                    offset: DirectionOffset.NEXT,
-                    skipDupe: shouldSkipDupChapters,
-                    skipDupeChapter: newInitialChapter,
-                }),
-            previousChapter:
-                newMangaChapters &&
-                newCurrentChapter &&
-                Chapters.getNextChapter(newCurrentChapter, newMangaChapters, {
-                    offset: DirectionOffset.PREVIOUS,
-                    skipDupe: shouldSkipDupChapters,
-                    skipDupeChapter: newInitialChapter,
-                }),
+        const nextChapter =
+            newMangaChapters &&
+            newCurrentChapter &&
+            Chapters.getNextChapter(newCurrentChapter, newMangaChapters, {
+                offset: DirectionOffset.NEXT,
+                skipDupe: shouldSkipDupChapters,
+                skipDupeChapter: newInitialChapter,
+            });
+        const previousChapter =
+            newMangaChapters &&
+            newCurrentChapter &&
+            Chapters.getNextChapter(newCurrentChapter, newMangaChapters, {
+                offset: DirectionOffset.PREVIOUS,
+                skipDupe: shouldSkipDupChapters,
+                skipDupeChapter: newInitialChapter,
+            });
+
+        setReaderStateChapters((prevState) => {
+            const hasInitialChapterChanged =
+                newInitialChapter != null && newInitialChapter.id !== prevState.initialChapter?.id;
+
+            return {
+                ...prevState,
+                mangaChapters: newMangaChapters ?? [],
+                chapters:
+                    newInitialChapter && newMangaChapters
+                        ? Chapters.removeDuplicates(newInitialChapter, newMangaChapters)
+                        : [],
+                initialChapter: newInitialChapter,
+                currentChapter: newCurrentChapter,
+                nextChapter,
+                previousChapter,
+                visibleChapters: hasInitialChapterChanged
+                    ? READER_STATE_CHAPTERS_DEFAULTS.visibleChapters
+                    : prevState.visibleChapters,
+            };
         });
     }, [chaptersResponse.data?.chapters.nodes, chapterSourceOrder, shouldSkipDupChapters]);
 };

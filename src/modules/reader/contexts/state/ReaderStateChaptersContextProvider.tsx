@@ -7,14 +7,15 @@
  */
 
 import { ReactNode, useMemo, useState } from 'react';
-import { ReaderStateChaptersContext } from '@/modules/reader/contexts/state/ReaderStateChaptersContext.tsx';
+import {
+    READER_STATE_CHAPTERS_DEFAULTS,
+    ReaderStateChaptersContext,
+} from '@/modules/reader/contexts/state/ReaderStateChaptersContext.tsx';
 import { ReaderStateChapters } from '@/modules/reader/types/Reader.types.ts';
 
 export const ReaderStateChaptersContextProvider = ({ children }: { children: ReactNode }) => {
-    const [state, setState] = useState<Omit<ReaderStateChapters, 'setReaderStateChapters'>>({
-        mangaChapters: [],
-        chapters: [],
-    });
+    const [state, setState] =
+        useState<Omit<ReaderStateChapters, 'setReaderStateChapters'>>(READER_STATE_CHAPTERS_DEFAULTS);
 
     const value = useMemo(
         () => ({

@@ -11,16 +11,14 @@ import Stack from '@mui/material/Stack';
 import { useTranslation } from 'react-i18next';
 import Button from '@mui/material/Button';
 import { Link } from 'react-router-dom';
-import { memo } from 'react';
+import { ComponentProps, memo, useMemo } from 'react';
 import { alpha, useTheme } from '@mui/material/styles';
 import { useReaderScrollbarContext } from '@/modules/reader/contexts/ReaderScrollbarContext.tsx';
 import { useReaderStateChaptersContext } from '@/modules/reader/contexts/state/ReaderStateChaptersContext.tsx';
-import { ChapterScanlatorInfo } from '@/modules/chapter/services/Chapters.ts';
-import { TChapterReader } from '@/modules/chapter/Chapter.types.ts';
+import { ChapterIdInfo } from '@/modules/chapter/services/Chapters.ts';
 import {
     IReaderSettings,
     ReaderPageScaleMode,
-    ReaderStateChapters,
     ReaderTransitionPageMode,
     ReadingMode,
     TReaderScrollbarContext,
@@ -38,19 +36,22 @@ import { AppRoutes } from '@/modules/core/AppRoute.constants.ts';
 import { NavbarContextType } from '@/modules/navigation-bar/NavigationBar.types.ts';
 import { withPropsFrom } from '@/modules/core/hoc/withPropsFrom.tsx';
 import { useReaderStateMangaContext } from '@/modules/reader/contexts/state/ReaderStateMangaContext.tsx';
-import { getValueFromObject } from '@/lib/HelperFunctions.ts';
+import { getValueFromObject, noOp } from '@/lib/HelperFunctions.ts';
 import { READER_BACKGROUND_TO_COLOR } from '@/modules/reader/constants/ReaderSettings.constants.tsx';
 import { ReaderService } from '@/modules/reader/services/ReaderService.ts';
-import { userReaderStatePagesContext } from '@/modules/reader/contexts/state/ReaderStatePagesContext.tsx';
 import { ReaderStatePages } from '@/modules/reader/types/ReaderProgressBar.types.ts';
+import { userReaderStatePagesContext } from '@/modules/reader/contexts/state/ReaderStatePagesContext.tsx';
+import { ChapterType } from '@/lib/graphql/generated/graphql.ts';
 
 const ChapterInfo = ({
     title,
-    chapter,
+    name,
+    scanlator,
     backgroundColor,
 }: {
     title: string;
-    chapter?: Pick<TChapterReader, 'name'> & ChapterScanlatorInfo;
+    name?: ChapterType['name'];
+    scanlator?: ChapterType['scanlator'];
     backgroundColor: IReaderSettings['backgroundColor'];
 }) => {
     const theme = useTheme();
@@ -60,7 +61,7 @@ const ChapterInfo = ({
     );
     const disabledText = alpha(contrastText, 0.5);
 
-    if (!chapter) {
+    if (!name) {
         return null;
     }
 
@@ -68,11 +69,11 @@ const ChapterInfo = ({
         <Stack>
             <Typography color={contrastText}>{title}</Typography>
             <Typography color={contrastText} variant="h6" component="h1">
-                {chapter.name}
+                {name}
             </Typography>
-            {chapter.scanlator && (
+            {scanlator && (
                 <Typography variant="body2" color={disabledText}>
-                    {chapter.scanlator}
+                    {scanlator}
                 </Typography>
             )}
         </Stack>
@@ -86,30 +87,40 @@ const BaseReaderTransitionPage = ({
     pageScaleMode,
     backgroundColor,
     manga,
-    currentChapter,
-    previousChapter,
-    nextChapter,
+    currentChapterName,
+    currentChapterScanlator,
+    previousChapterName,
+    previousChapterScanlator,
+    nextChapterName,
+    nextChapterScanlator,
     scrollbarXSize,
     scrollbarYSize,
     readerNavBarWidth,
+    handleBack,
 }: Pick<IReaderSettings, 'readingMode' | 'pageScaleMode' | 'backgroundColor'> &
     Pick<TReaderStateMangaContext, 'manga'> &
-    Pick<ReaderStateChapters, 'currentChapter' | 'previousChapter' | 'nextChapter'> &
     Pick<TReaderScrollbarContext, 'scrollbarXSize' | 'scrollbarYSize'> &
     Pick<ReaderStatePages, 'transitionPageMode'> &
     Pick<NavbarContextType, 'readerNavBarWidth'> & {
+        // gets used in the "source props creators" of the "withPropsFrom" call
+        // eslint-disable-next-line react/no-unused-prop-types
+        chapterId: ChapterIdInfo['id'];
+        currentChapterName?: ChapterType['name'];
+        currentChapterScanlator?: ChapterType['scanlator'];
+        previousChapterName?: ChapterType['name'];
+        previousChapterScanlator?: ChapterType['scanlator'];
+        nextChapterName?: ChapterType['name'];
+        nextChapterScanlator?: ChapterType['scanlator'];
         type: Exclude<ReaderTransitionPageMode, ReaderTransitionPageMode.NONE | ReaderTransitionPageMode.BOTH>;
+        handleBack: () => void;
     }) => {
     const { t } = useTranslation();
-
-    const handleBack = useBackButton();
 
     const isPreviousType = type === ReaderTransitionPageMode.PREVIOUS;
     const isNextType = type === ReaderTransitionPageMode.NEXT;
 
-    const isFirstChapter = !!currentChapter && !previousChapter;
-    const isLastChapter = !!currentChapter && !nextChapter;
-
+    const isFirstChapter = !!currentChapterName && !previousChapterName;
+    const isLastChapter = !!currentChapterName && !nextChapterName;
     const isFitWidthPageScaleMode = [ReaderPageScaleMode.SCREEN, ReaderPageScaleMode.WIDTH].includes(pageScaleMode);
 
     if (!isTransitionPageVisible(type, transitionPageMode, readingMode)) {
@@ -176,23 +187,26 @@ const BaseReaderTransitionPage = ({
                     {isPreviousType && !isFirstChapter && (
                         <ChapterInfo
                             title={t('reader.transition_page.previous')}
-                            chapter={previousChapter}
+                            name={previousChapterName}
+                            scanlator={previousChapterScanlator}
                             backgroundColor={backgroundColor}
                         />
                     )}
-                    {!!currentChapter && (
+                    {!!currentChapterName && (
                         <ChapterInfo
                             title={t(
                                 isPreviousType ? 'reader.transition_page.current' : 'reader.transition_page.finished',
                             )}
-                            chapter={currentChapter}
+                            name={currentChapterName}
+                            scanlator={currentChapterScanlator}
                             backgroundColor={backgroundColor}
                         />
                     )}
                     {isNextType && !isLastChapter && (
                         <ChapterInfo
                             title={t('reader.transition_page.next')}
-                            chapter={nextChapter}
+                            name={nextChapterName}
+                            scanlator={nextChapterScanlator}
                             backgroundColor={backgroundColor}
                         />
                     )}
@@ -231,20 +245,65 @@ const BaseReaderTransitionPage = ({
 };
 
 export const ReaderTransitionPage = withPropsFrom(
-    memo(BaseReaderTransitionPage),
+    memo(BaseReaderTransitionPage) as typeof BaseReaderTransitionPage,
     [
         useReaderStateMangaContext,
-        useReaderStateChaptersContext,
+        ({ chapterId }: Pick<ComponentProps<typeof BaseReaderTransitionPage>, 'chapterId'>) => {
+            const { chapters } = useReaderStateChaptersContext();
+
+            const currentChapterIndex = useMemo(
+                () => chapters.findIndex((chapter) => chapter.id === chapterId),
+                [chapterId, chapters],
+            );
+            const currentChapter = chapters[currentChapterIndex];
+            // chapters are sorted from latest to oldest
+            const previousChapter = useMemo(() => chapters[currentChapterIndex + 1], [currentChapterIndex, chapters]);
+            const nextChapter = useMemo(() => chapters[currentChapterIndex - 1], [currentChapterIndex, chapters]);
+
+            return {
+                currentChapterName: currentChapter?.name,
+                currentChapterScanlator: currentChapter?.scanlator,
+                previousChapterName: previousChapter?.name,
+                previousChapterScanlator: previousChapter?.name,
+                nextChapterName: nextChapter?.name,
+                nextChapterScanlator: nextChapter?.scanlator,
+            };
+        },
         useReaderScrollbarContext,
         useNavBarContext,
         userReaderStatePagesContext,
         ReaderService.useSettingsWithoutDefaultFlag,
+        ({ chapterId, type }: Pick<ComponentProps<typeof BaseReaderTransitionPage>, 'chapterId' | 'type'>) => {
+            const handleBack = useBackButton();
+            const { chapters } = useReaderStateChaptersContext();
+
+            const currentChapterIndex = useMemo(
+                () => chapters.findIndex((chapter) => chapter.id === chapterId),
+                [chapterId, chapters],
+            );
+
+            // chapters are sorted from latest to oldest
+            const isLastChapter = currentChapterIndex === 0;
+            const isFirstChapter = currentChapterIndex === chapters.length - 1;
+
+            const handleBackFirstChapter = type === ReaderTransitionPageMode.PREVIOUS && isFirstChapter;
+            const handleBackLastChapter = type === ReaderTransitionPageMode.NEXT && isLastChapter;
+
+            const needsToHandleBack = handleBackFirstChapter || handleBackLastChapter;
+
+            return {
+                handleBack: needsToHandleBack ? handleBack : noOp,
+            };
+        },
     ],
     [
         'manga',
-        'currentChapter',
-        'previousChapter',
-        'nextChapter',
+        'currentChapterName',
+        'currentChapterScanlator',
+        'previousChapterName',
+        'previousChapterScanlator',
+        'nextChapterName',
+        'nextChapterScanlator',
         'scrollbarXSize',
         'scrollbarYSize',
         'readerNavBarWidth',
@@ -252,5 +311,6 @@ export const ReaderTransitionPage = withPropsFrom(
         'transitionPageMode',
         'readingMode',
         'pageScaleMode',
+        'handleBack',
     ],
 );

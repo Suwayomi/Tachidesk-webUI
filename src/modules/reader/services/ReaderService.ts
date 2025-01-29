@@ -75,19 +75,17 @@ export class ReaderService {
         return ReaderService.chapterUpdateQueues.get(id)!;
     }
 
-    static useNavigateToChapter(chapter?: TChapterReader, resumeMode?: ReaderResumeMode): () => void {
+    static useNavigateToChapter(): (chapter: TChapterReader, resumeMode?: ReaderResumeMode) => void {
         const navigate = useNavigate();
-        return useCallback(
-            () =>
-                chapter &&
-                navigate(Chapters.getReaderUrl(chapter), {
-                    replace: true,
-                    state: {
-                        resumeMode,
-                    },
-                }),
-            [chapter],
-        );
+
+        return useCallback((chapter, resumeMode) => {
+            navigate(Chapters.getReaderUrl(chapter), {
+                replace: true,
+                state: {
+                    resumeMode,
+                },
+            });
+        }, []);
     }
 
     static downloadAhead(

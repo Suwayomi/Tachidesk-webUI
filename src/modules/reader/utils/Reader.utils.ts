@@ -6,7 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { ReaderPageSpreadState, ReaderResumeMode, ReadingMode } from '@/modules/reader/types/Reader.types.ts';
+import {
+    ReaderPageSpreadState,
+    ReaderResumeMode,
+    ReaderStateChapters,
+    ReadingMode,
+} from '@/modules/reader/types/Reader.types.ts';
 import { UpdateChapterPatchInput } from '@/lib/graphql/generated/graphql.ts';
 import { TChapterReader } from '@/modules/chapter/Chapter.types.ts';
 import { ChapterIdInfo, Chapters } from '@/modules/chapter/services/Chapters.ts';
@@ -165,3 +170,49 @@ export const createUpdateReaderPageLoadState =
             return statePageLoadStates.toSpliced(index, 1, { url: pageLoadState.url, loaded: true });
         });
     };
+
+export const createHandleReaderPageLoadError =
+    (setPageLoadStates: ReaderStatePages['setPageLoadStates']) => (pageIndex: number, url: string) => {
+        setPageLoadStates((statePageLoadStates) => {
+            const pageLoadState = statePageLoadStates[pageIndex];
+
+            if (isPageOfOutdatedPageLoadStates(url, pageLoadState)) {
+                return statePageLoadStates;
+            }
+
+            return statePageLoadStates.toSpliced(pageIndex, 1, {
+                ...pageLoadState,
+                loaded: false,
+                error: true,
+            });
+        });
+    };
+
+export const updateReaderStateVisibleChapters = (
+    isPreviousChapter: boolean,
+    state: Omit<ReaderStateChapters, 'setReaderStateChapters'>,
+    chapterToOpenSourceOrder: TChapterReader['sourceOrder'],
+    scrollIntoView: boolean,
+): Omit<ReaderStateChapters, 'setReaderStateChapters'> => {
+    const { leading, trailing, lastLeadingChapterSourceOrder, lastTrailingChapterSourceOrder } = state.visibleChapters;
+
+    const isNewLeadingChapter = isPreviousChapter && chapterToOpenSourceOrder < lastLeadingChapterSourceOrder;
+    const isNewTrailingChapter = !isPreviousChapter && chapterToOpenSourceOrder > lastTrailingChapterSourceOrder;
+
+    return {
+        ...state,
+        visibleChapters: {
+            ...state.visibleChapters,
+            leading: leading + Number(isNewLeadingChapter),
+            trailing: trailing + Number(isNewTrailingChapter),
+            lastLeadingChapterSourceOrder: isNewLeadingChapter
+                ? chapterToOpenSourceOrder
+                : lastLeadingChapterSourceOrder,
+            lastTrailingChapterSourceOrder: isNewTrailingChapter
+                ? chapterToOpenSourceOrder
+                : lastTrailingChapterSourceOrder,
+            scrollIntoView,
+            resumeMode: isPreviousChapter ? ReaderResumeMode.END : ReaderResumeMode.START,
+        },
+    };
+};

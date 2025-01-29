@@ -7,8 +7,8 @@
  */
 
 import Box from '@mui/material/Box';
-import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useDefaultReaderSettings } from '@/modules/reader/services/ReaderSettingsMetadata.ts';
 import { useNavBarContext } from '@/modules/navigation-bar/contexts/NavbarContext.tsx';
@@ -33,7 +33,6 @@ import { ReaderHotkeys } from '@/modules/reader/components/ReaderHotkeys.tsx';
 import {
     IReaderSettings,
     IReaderSettingsWithDefaultFlag,
-    ReaderResumeMode,
     ReaderStateChapters,
     TReaderAutoScrollContext,
     TReaderStateMangaContext,
@@ -49,7 +48,6 @@ import { useReaderAutoScrollContext } from '@/modules/reader/contexts/ReaderAuto
 import { TReaderTapZoneContext } from '@/modules/reader/types/TapZoneLayout.types.ts';
 import { useReaderTapZoneContext } from '@/modules/reader/contexts/ReaderTapZoneContext.tsx';
 import { useReaderResetStates } from '@/modules/reader/hooks/useReaderResetStates.ts';
-import { useReaderSetPagesState } from '@/modules/reader/hooks/useReaderSetPagesState.ts';
 import { useReaderSetSettingsState } from '@/modules/reader/hooks/useReaderSetSettingsState.ts';
 import { useReaderShowSettingPreviewOnChange } from '@/modules/reader/hooks/useReaderShowSettingPreviewOnChange.ts';
 import { useReaderSetChaptersState } from '@/modules/reader/hooks/useReaderSetChaptersState.ts';
@@ -72,7 +70,6 @@ const BaseReader = ({
     setSettings,
     initialChapter,
     currentChapter,
-    mangaChapters,
     setReaderStateChapters,
     firstPageUrl,
     totalPages,
@@ -94,7 +91,7 @@ const BaseReader = ({
         'shouldSkipDupChapters' | 'backgroundColor' | 'shouldShowReadingModePreview' | 'shouldShowTapZoneLayoutPreview'
     > &
     Pick<IReaderSettingsWithDefaultFlag, 'readingMode' | 'tapZoneLayout' | 'tapZoneInvertMode'> &
-    Pick<ReaderStateChapters, 'initialChapter' | 'currentChapter' | 'mangaChapters' | 'setReaderStateChapters'> &
+    Pick<ReaderStateChapters, 'initialChapter' | 'currentChapter' | 'setReaderStateChapters'> &
     Pick<
         ReaderStatePages,
         | 'totalPages'
@@ -111,9 +108,6 @@ const BaseReader = ({
         cancelAutoScroll: TReaderAutoScrollContext['cancel'];
     }) => {
     const { t } = useTranslation();
-    const { resumeMode } = useLocation<{
-        resumeMode: ReaderResumeMode;
-    }>().state ?? { resumeMode: ReaderResumeMode.START };
 
     const scrollElementRef = useRef<HTMLDivElement | null>(null);
 
@@ -128,20 +122,6 @@ const BaseReader = ({
 
     const mangaResponse = requestManager.useGetManga<GetMangaReaderQuery>(GET_MANGA_READER, mangaId);
     const chaptersResponse = requestManager.useGetMangaChapters<GetChaptersReaderQuery>(GET_CHAPTERS_READER, mangaId);
-    const [arePagesFetched, setArePagesFetched] = useState(false);
-    const [fetchPages, pagesResponse] = requestManager.useGetChapterPagesFetch(-1);
-
-    const doFetchPages = useCallback(() => {
-        if (!currentChapter) {
-            return;
-        }
-
-        setArePagesFetched(false);
-
-        fetchPages({ variables: { input: { chapterId: currentChapter.id } } }).catch(
-            defaultPromiseErrorHandler('Reader::fetchPages'),
-        );
-    }, [fetchPages, currentChapter?.id]);
 
     const {
         metadata: defaultSettingsMetadata,
@@ -149,21 +129,13 @@ const BaseReader = ({
         request: defaultSettingsResponse,
     } = useDefaultReaderSettings();
 
-    const doesChapterExist =
-        !chaptersResponse.loading &&
-        !chaptersResponse.error &&
-        chapterSourceOrder >= 0 &&
-        chapterSourceOrder <= mangaChapters.length;
-
     const isLoading =
         currentChapter === undefined ||
         !areSettingsSet ||
         mangaResponse.loading ||
         chaptersResponse.loading ||
-        defaultSettingsResponse.loading ||
-        pagesResponse.loading ||
-        (doesChapterExist && !arePagesFetched && !chaptersResponse.error && !pagesResponse.error);
-    const error = mangaResponse.error ?? chaptersResponse.error ?? defaultSettingsResponse.error ?? pagesResponse.error;
+        defaultSettingsResponse.loading;
+    const error = mangaResponse.error ?? chaptersResponse.error ?? defaultSettingsResponse.error;
 
     useLayoutEffect(() => {
         if (!manga || !currentChapter) {
@@ -173,11 +145,6 @@ const BaseReader = ({
 
         setTitle(`${manga.title}: ${currentChapter.name}`);
     }, [t, mangaId, chapterSourceOrder, manga, currentChapter]);
-
-    useEffect(() => {
-        doFetchPages();
-        return () => setArePagesFetched(false);
-    }, [currentChapter?.id]);
 
     useEffect(() => {
         setManga(mangaResponse.data?.manga);
@@ -196,19 +163,6 @@ const BaseReader = ({
         setIsOverlayVisible,
         setSettings,
         cancelAutoScroll,
-    );
-    useReaderSetPagesState(
-        pagesResponse,
-        resumeMode,
-        currentChapter,
-        setArePagesFetched,
-        setTotalPages,
-        setPages,
-        setPageUrls,
-        setPageLoadStates,
-        setCurrentPageIndex,
-        setPageToScrollToIndex,
-        setTransitionPageMode,
     );
     useReaderSetSettingsState(
         mangaResponse,
@@ -283,10 +237,6 @@ const BaseReader = ({
                     if (chaptersResponse.error) {
                         chaptersResponse.refetch().catch(defaultPromiseErrorHandler('Reader::refetchChapters'));
                     }
-
-                    if (pagesResponse.error) {
-                        doFetchPages();
-                    }
                 }}
             />
         );
@@ -309,10 +259,6 @@ const BaseReader = ({
 
     if (currentChapter === null) {
         return <EmptyViewAbsoluteCentered message={t('reader.error.label.chapter_not_found')} />;
-    }
-
-    if (currentChapter && !currentChapter?.pageCount) {
-        return <EmptyViewAbsoluteCentered message={t('reader.error.label.no_pages_found')} retry={doFetchPages} />;
     }
 
     if (!manga || !currentChapter) {
@@ -397,7 +343,6 @@ export const Reader = withPropsFrom(
         'setSettings',
         'initialChapter',
         'currentChapter',
-        'mangaChapters',
         'setReaderStateChapters',
         'firstPageUrl',
         'totalPages',
